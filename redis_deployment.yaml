@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-configmap
+  namespace: wikipedia-deadlink-finder
+data:
+  maxmemory: "2mb"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: redis-deployment
+    namespace: wikipedia-deadlink-finder
+  name: redis-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-deployment
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: redis-deployment
+    spec:
+      containers:
+      - image: redis:alpine
+        name: redis-container
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            cpu: 1
+        volumeMounts:
+        - name: data
+          mountPath: /redis-master-data
+        - name: redis-config
+          mountPath: /redis-master
+      volumes:
+      - name: redis-config
+        configMap: 
+          name: redis-configmap
+      - name: data
+        emptyDir: {}
+status: {}
